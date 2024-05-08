@@ -15,3 +15,11 @@ const corsOptions = {
 }
 app.use(cors(corsOptions))
 app.use(express.json())
+
+app.get('/', (req, res) => {
+    res.send('Hello From SoloSphere Server..........')
+})
+
+app.listen(port, () => {
+    console.log(`server is running on port ${port}`);
+})
