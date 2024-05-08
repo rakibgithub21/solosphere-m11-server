@@ -41,7 +41,8 @@ async function run() {
         const bidsCollection = client.db('soloSphere').collection('bids')
         // Get all data:
         app.get('/jobs', async (req, res) => {
-
+            const result = await jobsCollection.find().toArray()
+            res.send(result)
         })
 
 
