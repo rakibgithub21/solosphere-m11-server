@@ -44,13 +44,13 @@ async function run() {
             const result = await jobsCollection.find().toArray()
             res.send(result)
         })
-        // get single job data from db using id::
+
+        // delete single job data from db using id::
         
-        app.get('/job/:id', async (req, res) => {
+        app.delete('/job/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
-            
-            const result = await jobsCollection.findOne(query)
+            const result = await jobsCollection.deleteOne(query)
             res.send(result)
         })
 
@@ -60,6 +60,44 @@ async function run() {
             const bidData = req.body;
             console.log(bidData);
             const result = await bidsCollection.insertOne(bidData);
+            res.send(result)
+        })
+
+        // save a job in db
+        app.post('/job', async (req, res) => {
+            const jobData = req.body;
+            console.log(jobData);
+            const result = await jobsCollection.insertOne(jobData);
+            res.send(result)
+        })
+
+        // get all jobs posted by specific user:
+        app.get('/jobs/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { 'buyer.email': email }
+            const result = await jobsCollection.find(query).toArray();
+            res.send(result)
+        })
+
+        app.get('/job/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            
+            const result = await jobsCollection.findOne(query);
+            res.send(result)
+        })
+
+        app.put('/job/:id', async (req, res) => {
+            const id = req.params.id;
+            const jobData = req.body;
+            const query = { _id: new ObjectId(id) }
+            const options = { upsert: true }
+            const updateDoc = {
+                $set: {
+                   ...jobData, 
+                },
+            }
+            const result = await jobsCollection.updateOne(query, updateDoc, options)
             res.send(result)
         })
 
