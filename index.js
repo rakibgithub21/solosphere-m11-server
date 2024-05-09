@@ -1,8 +1,12 @@
 const express = require('express')
 const cors = require('cors')
 require('dotenv').config()
-const port = process.env.PORT || 5000
 
+// for jwt and set cookie
+const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
+
+const port = process.env.PORT || 5000
 const app = express()
 const corsOptions = {
     origin: [
@@ -22,6 +26,7 @@ app.use(express.json())
 
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vq4rqer.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -38,6 +43,31 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         // await client.connect();
         const jobsCollection = client.db('soloSphere').collection('jobs')
+        
+        //For jwt install json web token .. and also install cookie parser for get token from client site to server site:
+
+
+        app.post('/jwt', async (req, res) => {
+            const user = req.body
+            console.log(user);
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '365d' })
+            res
+                .cookie('token', token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite:process.env.NODE_ENV ==='production' ? 'none' : 'strict'
+
+               }) 
+                .send({ success:true })
+        })
+
+        
+
+        
+        
+        
+        
+        
         const bidsCollection = client.db('soloSphere').collection('bids')
         // Get all data:
         app.get('/jobs', async (req, res) => {
@@ -119,6 +149,23 @@ async function run() {
             const email = req.params.email;
             const query = { 'buyer.email': email }
             const result = await bidsCollection.find(query).toArray();
+            res.send(result)
+        })
+
+        // update bid status:
+        app.patch('/bid/:id',async(req,res)=>{
+            const id = req.params.id
+            const reqBody = req.body
+            const query = { _id: new ObjectId(id) }
+            const updateDoc = {
+                // $set: reqBody
+                $set: {
+                    status:reqBody.status
+                }
+
+               
+            }
+            const result = await bidsCollection.updateOne(query, updateDoc)
             res.send(result)
         })
 
